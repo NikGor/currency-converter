@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<form class="col-md-6 mb-4" method="post">
+
+    <div class="input-group">
+        <div class="mb-3">
+            <input type="text"
+                   class="form-control rounded-0"
+                   id="amount1"
+                   name="amount1"
+                   required placeholder="Enter amount">
+        </div>
+        <div class="mb-3">
+            <select class="form-select rounded-0" id="currency1" name="currency1">
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+                <!-- Добавьте другие валюты по желанию -->
+            </select>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <div class="mb-3">
+            <input type="text"
+               class="form-control rounded-0"
+               id="result"
+               name="result"
+               readonly
+               placeholder="Result amount">
+        </div>
+        <div class="mb-3">
+            <select class="form-select rounded-0" id="currency2" name="currency2">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <!-- Добавьте другие валюты по желанию -->
+            </select>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-outline-dark rounded-0 mt-3">Convert</button>
+
+</form>
+{% endblock %}
