@@ -14,9 +14,8 @@ RUN pip install poetry
 RUN poetry config virtualenvs.create false \
   && poetry install --no-interaction --no-ansi
 
-# Make ports available to the world outside this container
-EXPOSE 5000 8000
+# Make port 80 available to the world outside this container
+EXPOSE 8000
 
-# Start both applications using a shell script
-COPY start.sh /app
-CMD ["/bin/bash", "/app/start.sh"]
+# Run app.py when the container launches
+CMD ["uvicorn", "converter.api:app", "--host", "0.0.0.0", "--port", "8000"]

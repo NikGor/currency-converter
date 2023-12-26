@@ -24,7 +24,8 @@ dev:
 	flask run
 
 start:
-	poetry run gunicorn -w 5 -b 0.0.0.0:8000 converter.app:app
+	poetry run gunicorn -w 5 -b 0.0.0.0:5000 converter.app:app
+	poetry run uvicorn converter.app:app --host
 
 ALL: lint install build
 
