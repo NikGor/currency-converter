@@ -1,9 +1,13 @@
 from fastapi import FastAPI, HTTPException
-from converter.currency import convert_currency_logic
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from converter.currency_db import update_currency_rates
+from converter.currency_logic import convert_currency_logic
+from converter.db import create_database_if_not_exists, SessionLocal
+from converter.models import Currency
 
 app = FastAPI()
+create_database_if_not_exists()
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,11 +39,30 @@ async def convert(conversion_request: ConversionRequest):
 
 @app.post('/update-rates')
 async def update_rates_endpoint():
-    # Тут будет вызов функции обновления курсов валют
-    return {"message": "Currency rates updated"}
+    try:
+        update_currency_rates()
+        return {"message": "Currency rates updated successfully"}
+    except Exception as e:
+        # Здесь лучше использовать более конкретные исключения, если возможно
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get('/last-update')
 async def last_update_endpoint():
-    # Тут будет запрос даты последнего обновления из БД
-    return {"last_updated": "2023-01-01T00:00:00"}
+    db = SessionLocal()
+    try:
+        last_update = (db.query(Currency).
+                       order_by(Currency.
+                       updated_at.desc()).
+                       first())
+        if last_update:
+            return {"last_updated": last_update.updated_at}
+        else:
+            return {"last_updated": "No data available"}
+    finally:
+        db.close()
+
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host="localhost", port=8000)

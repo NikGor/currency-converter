@@ -19,13 +19,12 @@ amend-and-push:
 	git push --force
 
 dev:
-	export FLASK_APP=converter.app
+	export FLASK_APP=converter.api
 	export FLASK_ENV=development
 	flask run
 
 start:
-	poetry run gunicorn -w 5 -b 0.0.0.0:5000 converter.app:app
-	poetry run uvicorn converter.app:app --host
+	poetry run uvicorn converter.app:app
 
 ALL: lint install build
 

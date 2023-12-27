@@ -1,30 +1,72 @@
-name: CI/CD status
+name: CI
 
 on: [push, pull_request]
 
 jobs:
   lint_test_build_and_deploy:
     runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:12
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: dbname
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://user:password@db:5432/dbname
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
       - name: Cache Python dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry/virtualenvs
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: 3.x
+          python-version: '3.10' # Используется версия Python, соответствующая вашему Dockerfile
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install poetry
-          poetry install
+          poetry config virtualenvs.create false
+          poetry install --no-interaction --no-ansi
+
+      - name: Check DB connection
+        run: |
+          until nc -z localhost 5432; do   
+            echo "Waiting for DB to be ready..."
+            sleep 1
+          done
+          echo "DB is up and running on port 5432!"
+
+      - name: Log DATABASE_URL
+        run: echo $DATABASE_URL
+
+      - name: Run Alembic migrations
+        run: |
+          DATABASE_URL=${{ env.DATABASE_URL }} poetry run alembic upgrade head
+
       - name: Run Flake8
-        run: make lint
+        run: |
+          poetry run flake8
+
       - name: Run pytest
-        run: make test
+        run: |
+          poetry run pytest
