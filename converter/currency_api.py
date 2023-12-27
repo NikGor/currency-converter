@@ -1,21 +1,13 @@
 import requests
+import os
+from dotenv import load_dotenv
 
-api_key = 'b9764f61f1ae156a0c82a847ed67bac3'
+load_dotenv()
 
-
-def convert_currency_logic(amount, currency1, currency2):
-    exchange_rate = get_exchange_rate(api_key, currency1, currency2)
-
-    if exchange_rate is None:
-        # Вместо возврата None выбрасываем исключение
-        raise ValueError('Conversion for the selected '
-                         'currency is not supported.')
-
-    # Если дошли до сюда, значит ошибки нет и можно возвращать результат
-    result = round(amount * exchange_rate, 2)
-    return result
+api_key = os.environ.get('API_KEY')
 
 
+# Функция для получения списка валют
 def get_currencies():
     url = f"http://api.exchangeratesapi.io/v1/symbols?access_key={api_key}"
     response = requests.get(url)
@@ -27,6 +19,7 @@ def get_currencies():
         return None
 
 
+# Функция для получения курса валюты
 def get_exchange_rate(api_key, currency1, currency2):
     url = (f"http://api.exchangeratesapi.io/v1/latest?access_key={api_key}"
            f"&symbols={currency2}&base={currency1}")
